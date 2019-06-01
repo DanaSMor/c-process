@@ -1,19 +1,29 @@
-//#include "md5.h"
-#include <signal.h>
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <fcntl.h>
+#include <sys/uio.h>
+#include <signal.h>
+#include <sys/fcntl.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <cstdio>
+#include <iostream>
+#include "md5.h"
 
 #define SIZE 20
+#define ENCRYPTSIZE 32
 char secret[33];
 int pid;
-void sigqut()
+
+void sigqut(int sig_num)
 {
     exit(0);
 }
 
-void sigint()
+void sigint(int sig_num)
 {
     char check = secret[0];
     int i = 0;
@@ -50,7 +60,7 @@ int main()
         exit(1);
     }
 
-    if (pid)
+    if (pid)//father
     {
         printf("write something: ");
         fgets(msg, SIZE, stdin);
@@ -59,12 +69,11 @@ int main()
 
         pause();
     }
-    else
+    else //son
     {
         signal(SIGQUIT, sigqut);
         read(pipeParent[0], buffer, SIZE);
-        char rs[33] = "Back to parent34af a fadfettfgas";
-        write(pipeChild[1], rs, 33);
+        write(pipeChild[1],md5(buffer).c_str(), ENCRYPTSIZE);
         sleep(2);
         kill(getppid(), SIGINT);
         pause();
